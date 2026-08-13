@@ -102,6 +102,75 @@ Cypress.Commands.add('createDummyOrder', (phone, customerName = 'Action Test Cus
   cy.wait(500)
 })
 
+// The orders list seems to issue a background/repeat fetch independent of
+// user actions, so cy.wait('@alias') can pick up that unrelated request
+// instead of the one caused by our click, even when the click landed fine.
+// Polling all accumulated calls on the alias sidesteps that ordering race.
+// `retryClick`, if given, is invoked once partway through if no matching
+// request has shown up yet - covers the case where the triggering click
+// itself never registered (hydration race), not just network lag.
+Cypress.Commands.add('waitForRequestUrlIncluding', (alias, substring, options = {}) => {
+  const { retries = 6, retryClick } = options
+  const attempt = (retriesLeft) => {
+    cy.wait(700)
+    cy.get(`@${alias}.all`).then((calls) => {
+      const matched = calls.some((c) => c.request.url.includes(substring))
+      if (!matched && retriesLeft > 0) {
+        if (retryClick && retriesLeft === Math.ceil(retries / 2)) retryClick()
+        attempt(retriesLeft - 1)
+      } else {
+        expect(matched, `a request to @${alias} including "${substring}"`).to.be.true
+      }
+    })
+  }
+  attempt(retries)
+})
+
+// Generic version of the same pattern: click a toggle, but only re-click if
+// the expected text is confirmed still absent - never blindly re-click on a
+// timeout, since that can close a dropdown a slower-arriving first click did
+// actually manage to open.
+Cypress.Commands.add('clickUntilTextVisible', (clickFn, text, retries = 4) => {
+  const ensureOpen = (retriesLeft) => {
+    cy.get('body').then(($body) => {
+      if ($body.text().includes(text)) return
+      if (retriesLeft <= 0) return
+
+      clickFn()
+      cy.wait(1200)
+      ensureOpen(retriesLeft - 1)
+    })
+  }
+  ensureOpen(retries)
+  cy.contains(text, { timeout: 4000 }).should('be.visible')
+})
+
+// Opens the date-range dropdown (button currently showing e.g. "Today").
+// The trigger can suffer the same click-before-hydration issue as other
+// buttons, so verify it actually opened (via a range only present in the
+// open list, e.g. "Last Year") before proceeding. Checks state before each
+// click rather than blindly re-clicking on every retry - since the trigger
+// is a toggle, an unconditional click on a failed attempt can close what a
+// previous attempt had opened.
+Cypress.Commands.add('ensureDateDropdownOpen', (retries = 4) => {
+  const ensureOpen = (retriesLeft) => {
+    cy.get('body').then(($body) => {
+      if ($body.text().includes('Last Year')) return
+      if (retriesLeft <= 0) return
+
+      cy.contains('button', /today|yesterday|this month|this year|last year/i).click()
+      cy.wait(600)
+      ensureOpen(retriesLeft - 1)
+    })
+  }
+  ensureOpen(retries)
+})
+
+Cypress.Commands.add('selectDateRange', (rangeLabel) => {
+  cy.ensureDateDropdownOpen()
+  cy.contains(rangeLabel).click({ force: true })
+})
+
 Cypress.Commands.add('loginViaSession', () => {
   cy.session('validAdminSession', () => {
     cy.visit('/login')

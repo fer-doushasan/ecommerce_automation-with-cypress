@@ -1,3 +1,9 @@
+// Same curated list as commands.js's createDummyOrder - used here for tests
+// that build an order manually rather than through that command, so they
+// don't all repeat the exact same product every run either.
+const TEST_PRODUCTS = ['Macbook M4', 'IMac', 'Mac MINI', 'Pro Book']
+const randomTestProduct = () => TEST_PRODUCTS[Math.floor(Math.random() * TEST_PRODUCTS.length)]
+
 describe('Orders page', () => {
   beforeEach(() => {
     cy.loginViaSession()
@@ -80,7 +86,7 @@ describe('Orders page', () => {
     cy.contains('Order Items').should('be.visible')
 
     cy.get('select').first().find('option', { timeout: 15000 }).should('have.length.greaterThan', 1)
-    cy.get('select').first().select('Macbook M4')
+    cy.get('select').first().select(randomTestProduct())
     cy.wait(1500)
 
     // Some products have a required Variant dropdown that only appears
@@ -119,7 +125,7 @@ describe('Orders page', () => {
     cy.clickUntilUrlIncludes(() => cy.contains('button', /new order/i), '/admin/orders/create')
     cy.contains('Order Items').should('be.visible')
     cy.get('select').first().find('option', { timeout: 15000 }).should('have.length.greaterThan', 1)
-    cy.get('select').first().select('Macbook M4')
+    cy.get('select').first().select(randomTestProduct())
     cy.wait(1000)
 
     cy.contains('Item 1').should('be.visible')
@@ -154,7 +160,11 @@ describe('Orders page - list features', () => {
       cy.contains('button', /^confirmed$/i).click()
     })
 
-    cy.waitForRequestUrlIncluding('ordersReq', 'status=confirmed')
+    cy.waitForRequestUrlIncluding('ordersReq', 'status=confirmed', {
+      retryClick: () => cy.contains('button', /^pending$/i).parent().within(() => {
+        cy.contains('button', /^confirmed$/i).click()
+      }),
+    })
     cy.contains('button', /^pending$/i).parent().within(() => {
       cy.contains('button', /^confirmed$/i)
         .invoke('attr', 'class').should('match', /primary|active|selected/)
@@ -269,20 +279,32 @@ describe('Orders page - list features', () => {
     cy.contains('button', /export xlsx/i).should('be.visible')
   })
 
-  // Known bug (TC_020): clicking Tutorial doesn't open any video/help
-  // content. This test documents the current (broken) behavior explicitly -
-  // if a fix ships, this assertion should start failing and needs updating
-  // to check for the video/modal that should then appear.
-  it('does not open a tutorial video when Tutorial is clicked (documents known bug)', () => {
-    cy.window().then((win) => {
-      cy.stub(win, 'open').as('windowOpen')
-    })
-    cy.contains('button', /tutorial/i).click()
-    cy.wait(1500)
+  it('shows Product Sales Report with CSV and XLSX download options', () => {
+    cy.clickUntilTextVisible(() => cy.contains('button', /export/i).click(), 'Product Sales Report')
+    cy.contains('Product Sales Report').click({ force: true })
+    cy.wait(1000)
 
-    cy.get('@windowOpen').should('not.have.been.called')
-    cy.contains('video, iframe[src*="youtube"], iframe[src*="vimeo"]').should('not.exist')
-    cy.url().should('include', '/admin/orders')
+    cy.contains('Start Date').should('be.visible')
+    cy.contains('End Date').should('be.visible')
+    cy.contains('button', /export csv/i).should('be.visible')
+    cy.contains('button', /export xlsx/i).should('be.visible')
+  })
+
+  it('shows Variant Sales Report with CSV and XLSX download options', () => {
+    cy.clickUntilTextVisible(() => cy.contains('button', /export/i).click(), 'Variant Sales Report')
+    cy.contains('Variant Sales Report').click({ force: true })
+    cy.wait(1000)
+
+    cy.contains('Start Date').should('be.visible')
+    cy.contains('End Date').should('be.visible')
+    cy.contains('button', /export csv/i).should('be.visible')
+    cy.contains('button', /export xlsx/i).should('be.visible')
+  })
+
+  it('opens the tutorial video when Tutorial is clicked', () => {
+    cy.clickUntilTextVisible(() => cy.contains('button', /tutorial/i).click(), 'Press Esc to close')
+
+    cy.get('iframe, video').should('exist')
   })
 
   it('selecting a row checkbox reveals the bulk action bar', () => {
@@ -315,7 +337,9 @@ describe('Orders page - list features', () => {
     cy.get('tbody tr').first().within(() => {
       cy.contains(/ORD-\d+-\d+/).should('be.visible')
       cy.contains('Action Test Customer').should('be.visible')
-      cy.contains('Macbook M4').should('be.visible')
+      // Product varies per run (createDummyOrder picks one at random from a
+      // curated list) rather than always being the same one.
+      cy.contains(/Macbook M4|IMac|Mac MINI|Pro Book/).should('be.visible')
       cy.contains('Subtotal').should('be.visible')
       cy.contains('Delivery').should('be.visible')
       cy.contains('Discount').should('be.visible')
@@ -458,7 +482,7 @@ describe('Order row actions (on one existing order)', () => {
   // quirk of this specific teleported component rather than a script bug,
   // so this test covers what's reliably verifiable: the dropdown opens and
   // lists real, non-empty agent names.
-  it('opens the agent dropdown and lists available agents', () => {
+  it('assigns an agent to the order', () => {
     goToOrdersAllTab()
 
     // Find the row once - re-running getRow() on every retry means redoing
@@ -467,13 +491,32 @@ describe('Order row actions (on one existing order)', () => {
     // force:true since the row can end up scrolled out of view between
     // retries, which otherwise blocks the click on visibility grounds alone.
     getRow().scrollIntoView().find('button', { timeout: 10000 }).contains(/add_agent/i).as('addAgentBtn')
-    cy.clickUntilTextVisible(() => cy.get('@addAgentBtn').click({ force: true }), 'SELECT AGENT')
-    cy.contains('SELECT AGENT').parent().find('*').filter(':visible').then(($all) => {
-      const $leaves = $all.filter(
-        (i, el) => el.children.length === 0 && el.textContent.trim().length > 0
-          && el.textContent.trim().toUpperCase() !== 'SELECT AGENT'
-      )
-      expect($leaves.length, 'number of agent options').to.be.greaterThan(0)
+    // The panel header reads "Select Agent" (mixed case, CSS-uppercased for
+    // display) - matching the literal uppercase string never finds it.
+    cy.clickUntilTextVisible(() => cy.get('@addAgentBtn').click({ force: true }), 'Select Agent')
+
+    // Options are real <button> elements inside the teleported dropdown
+    // panel (div.fixed.z-50), a sibling of the click-away backdrop
+    // (div.fixed.inset-0.z-40) - clicking that button directly (not a
+    // fragile "leaf text node" guess) is what actually registers the
+    // selection.
+    cy.get('div.fixed.z-50').find('button').first().invoke('text').then((text) => {
+      const agentName = text.trim()
+      cy.wrap(agentName).as('agentName')
+    })
+    cy.get('div.fixed.z-50').find('button').first().click({ force: true })
+
+    cy.get('@agentName').then((agentName) => {
+      cy.contains(new RegExp(`agent updated to "${agentName}"`, 'i')).should('be.visible')
+      // getRow() only searches - it doesn't scroll the table back right, so
+      // the Courier/Status/Agent columns are off-screen (left at the default
+      // scroll position) right after a fresh search.
+      getRow()
+      cy.get('table').parent().scrollTo('right')
+      cy.wait(300)
+      getRow().within(() => {
+        cy.contains('button', new RegExp(`^${agentName}$`, 'i')).should('be.visible')
+      })
     })
   })
 
@@ -495,7 +538,7 @@ describe('Order row actions (on one existing order)', () => {
     cy.url().should('include', '/admin/orders/create?mode=edit')
   })
 
-  it('opens the Paid Amount dialog via the Payment Received action', () => {
+  it('opens the Paid Amount dialog and cancelling leaves the order unchanged', () => {
     goToOrdersAllTab()
 
     getRow().find('button[title="Payment Received"]').click({ force: true })
@@ -511,16 +554,331 @@ describe('Order row actions (on one existing order)', () => {
     })
   })
 
-  // window.print()/browser print dialogs can't be fully verified headlessly;
-  // this just confirms the button doesn't throw or navigate away.
-  it('clicking Print does not error or navigate away', () => {
+  it('entering a paid amount and saving moves the order to Payment-received', () => {
+    goToOrdersAllTab()
+
+    getRow().find('button[title="Payment Received"]').click({ force: true })
+    cy.contains('Paid Amount', { timeout: 8000 }).should('be.visible')
+    cy.wait(500)
+
+    cy.get('input[type="number"]').first().clear().type('90', { delay: 100 })
+    cy.contains('button', /save/i).click({ force: true })
+
+    cy.contains(/payment received successfully/i).should('be.visible')
+    getRow().within(() => {
+      cy.contains('button', /payment-received/i).should('be.visible')
+    })
+  })
+
+  it('shows the Print Invoice format submenu (Full Page/Half Page/POS Page/POS Mini)', () => {
     goToOrdersAllTab()
 
     getRow().find('button[title="Print"]').click({ force: true })
+    cy.contains('Full Page', { timeout: 8000 }).should('exist')
+
+    cy.contains('Half Page').should('be.visible')
+    cy.contains('POS Page').should('be.visible')
+    cy.contains('POS Mini').should('be.visible')
+    cy.url().should('include', '/admin/orders')
+  })
+
+  it('copies order number, name, phone and address via the Copy action', () => {
+    goToOrdersAllTab()
+
+    cy.window().then((win) => {
+      cy.stub(win.navigator.clipboard, 'writeText').as('clipboardWrite').resolves()
+    })
+
+    getRow().find('button[title="Copy"]').click({ force: true })
+
+    cy.get('@clipboardWrite').should('have.been.calledOnce')
+    cy.get('@clipboardWrite').then((stub) => {
+      const copiedText = stub.args[0][0]
+      expect(copiedText).to.match(/Order Number: ORD-\d+-\d+/)
+      expect(copiedText).to.match(/Name: /)
+      expect(copiedText).to.match(/Phone: /)
+      expect(copiedText).to.match(/Address: /)
+    })
+  })
+})
+
+describe('Order tracking', () => {
+  beforeEach(() => {
+    cy.loginViaSession()
+  })
+
+  it('shows a tracking ID and Track button once a courier is set and status moves to Ready To Ship', () => {
+    cy.createDummyOrder('01766600001', 'Consignment Test Customer')
+    cy.wait(1500)
+
+    cy.get('table tbody tr').first().invoke('text').then((text) => {
+      const orderNumber = text.match(/ORD-\d+-\d+/)[0]
+      cy.wrap(orderNumber).as('orderNumber')
+    })
+
+    cy.get('@orderNumber').then((orderNumber) => {
+      const row = () => cy.contains(orderNumber).parents('tr')
+
+      // A search-box round trip first lets the page settle - clicking
+      // immediately after order creation hits the hydration race seen
+      // throughout this app.
+      cy.contains('button', /^all$/i).click({ force: true })
+      cy.wait(600)
+      cy.typeReliably('input[placeholder*="Search by order"]', orderNumber)
+      cy.wait(1000)
+      cy.get('table').parent().scrollTo('right')
+      cy.wait(500)
+
+      // Before: courier unset, status Pending - no Track button yet.
+      row().within(() => {
+        cy.contains('button', /^track$/i).should('not.exist')
+      })
+
+      // Assign a courier while status is still Pending.
+      cy.selectFromRowDropdown(
+        () => row().within(() => cy.contains('button', /add_courier/i).click()),
+        'Select Courier',
+        'Steadfast'
+      )
+      cy.contains(/courier updated to "steadfast"/i).should('be.visible')
+      cy.wait(1000)
+
+      // Courier alone isn't enough yet - still no tracking ID/Track button.
+      row().within(() => {
+        cy.contains('button', /^track$/i).should('not.exist')
+      })
+
+      // Move status to Ready To Ship.
+      cy.contains('button', /^all$/i).click({ force: true })
+      cy.wait(600)
+      cy.dismissBackdrop()
+      cy.typeReliably('input[placeholder*="Search by order"]', orderNumber)
+      cy.wait(1000)
+
+      cy.selectFromRowDropdown(
+        () => row().within(() => cy.contains('button', /pending|followup|confirmed/i).click()),
+        'Set Status',
+        'Ready To Ship'
+      )
+      cy.contains(/status updated to "ready to ship"/i).should('be.visible')
+
+      const hasTrackButton = ($body) => {
+        const $row = $body.find(`tr:contains("${orderNumber}")`)
+        return $row.find('button').toArray().some((b) => /^track$/i.test(b.innerText.trim()))
+      }
+
+      // Generating the consignment/tracking ID calls out to the courier's
+      // own API asynchronously, after the status-change response comes
+      // back - polling the already-rendered DOM won't pick that up once it
+      // lands, since this app doesn't push a live update to the row. Instead
+      // re-search (a fresh network fetch) repeatedly until the Track button
+      // shows up or we give up.
+      const checkForTrackButton = (attemptsLeft) => {
+        cy.contains('button', /^all$/i).click({ force: true })
+        cy.wait(600)
+        cy.dismissBackdrop()
+        cy.typeReliably('input[placeholder*="Search by order"]', orderNumber)
+        cy.wait(1000)
+        cy.get('table').parent().scrollTo('right')
+        cy.wait(500)
+
+        cy.get('body').then(($body) => {
+          if (!hasTrackButton($body) && attemptsLeft > 0) {
+            cy.wait(2000)
+            checkForTrackButton(attemptsLeft - 1)
+          } else {
+            row().within(() => {
+              cy.contains('button', /ready to ship/i).should('be.visible')
+              cy.contains('button', /^track$/i).should('be.visible')
+            })
+          }
+        })
+      }
+
+      checkForTrackButton(6)
+    })
+  })
+})
+
+describe('Bulk order actions (checkbox selection)', () => {
+  before(() => {
+    cy.loginViaSession()
+    cy.createDummyOrder('01777700001', 'Bulk Action Test Customer')
+    cy.wait(1500)
+  })
+
+  beforeEach(() => {
+    cy.loginViaSession()
+  })
+
+  function selectOrder() {
+    cy.visit('/admin/orders')
+    cy.contains('Orders').should('be.visible')
+    cy.wait(1000)
+    cy.contains('button', /^all$/i).click({ force: true })
+    cy.selectDateRange('This Year')
+    cy.wait(1000)
+    cy.typeReliably('input[placeholder*="Search by order"]', 'Bulk Action Test Customer')
+    cy.wait(1000)
+    cy.get('table tbody tr').first().find('input[type="checkbox"]').click({ force: true })
+    cy.wait(800)
+  }
+
+  it('bulk-assigns a courier via Change Courier Vendor', () => {
+    selectOrder()
+
+    cy.contains('button', /change courier vendor/i).click({ force: true })
+    cy.contains('Select Courier', { timeout: 8000 }).should('exist')
+    cy.wait(300)
+    cy.get('div.z-50').contains('button', 'Steadfast').click({ force: true })
+
+    cy.contains(/1 order updated/i).should('be.visible')
+  })
+
+  it('bulk-changes status via Change Status', () => {
+    selectOrder()
+
+    cy.contains('button', /change status/i).click({ force: true })
+    cy.contains('Set Status', { timeout: 8000 }).should('exist')
+    cy.wait(300)
+    cy.get('div.z-50').contains('button', 'Confirmed').click({ force: true })
+
+    cy.contains(/status updated to "confirmed" for 1 order/i).should('be.visible')
+  })
+
+  it('bulk-adds a courier note via Add Courier Note', () => {
+    selectOrder()
+
+    cy.contains('button', /add courier note/i).click({ force: true })
+    cy.wait(1000)
+    cy.get('textarea[placeholder*="Handle with care"]').type('Bulk note test', { delay: 30 })
+    cy.contains('button', /apply to \d+ order/i).click({ force: true })
+
+    cy.contains(/courier note added to 1 order/i).should('be.visible')
+  })
+
+  it('opens the Print Invoice format menu and prints without erroring', () => {
+    selectOrder()
+
+    cy.contains('button', /print invoice/i).click({ force: true })
+    cy.contains('Full Page', { timeout: 8000 }).should('exist')
+    cy.contains('Half Page').should('be.visible')
+    cy.contains('POS Page').should('be.visible')
+    cy.contains('POS Mini').should('be.visible')
+
+    cy.wait(300)
+    cy.contains('Full Page').click({ force: true })
     cy.wait(1000)
 
     cy.url().should('include', '/admin/orders')
+  })
+})
+
+// Known bugs, confirmed and reproduced manually (see conversation history):
+// the Customer Note field saves correctly on order *creation*, but the Edit
+// Order flow silently drops changes to it - both adding a note to a
+// note-less order and clearing an existing note fail to persist, even
+// though the "Order updated successfully" toast implies success and every
+// other field (product, phone, name, address, etc.) saves fine. On top of
+// that, the View Order page has no Customer Note field at all - only a
+// separate, unrelated "Courier Note" field exists there.
+// These tests assert the CORRECT behavior, so they currently fail by
+// design - once the underlying bug is fixed, they should start passing
+// without any changes needed here.
+describe('Customer note editing (known bugs)', () => {
+  beforeEach(() => {
+    cy.loginViaSession()
+  })
+
+  function createOrder(phone, name, note) {
+    cy.visit('/admin/orders')
     cy.contains('Orders').should('be.visible')
+    cy.wait(1000)
+    cy.clickUntilUrlIncludes(() => cy.contains('button', /new order/i), '/admin/orders/create')
+    cy.contains('Order Items').should('be.visible')
+
+    cy.get('select').first().find('option', { timeout: 15000 }).should('have.length.greaterThan', 1)
+    cy.get('select').first().select(randomTestProduct())
+    cy.wait(1500)
+    cy.get('select').eq(1).then(($variantSelect) => {
+      const options = $variantSelect.find('option').toArray().map((o) => o.textContent.trim())
+      if (options.length > 1) cy.wrap($variantSelect).select(options[1])
+    })
+    cy.wait(500)
+
+    cy.scrollTo('bottom')
+    cy.wait(1000)
+    cy.scrollTo('bottom')
+
+    cy.contains('label', /delivery fee/i).parent().find('input').type('50', { delay: 100 })
+    cy.get('input[placeholder="01700000000"]').clear().type(phone, { delay: 60 })
+    cy.get('input[placeholder="Customer name"]').clear().type(name, { delay: 60 })
+    cy.get('textarea[placeholder*="delivery address"]').clear().type('Customer Note Test Address', { delay: 50 })
+    if (note) {
+      cy.contains('label', /customer note/i).parent().find('textarea').type(note, { delay: 30 })
+    }
+
+    cy.intercept('POST', '**/api/v1/admin/orders').as('createOrder')
+    cy.getButtonContaining('create order').click()
+    return cy.wait('@createOrder', { timeout: 15000 })
+  }
+
+  function getCustomerNoteFieldValue(orderId) {
+    cy.visit(`/admin/orders/create?mode=edit&id=${orderId}`)
+    cy.wait(4000)
+    cy.scrollTo('bottom')
+    cy.wait(1000)
+    return cy.contains('label', /customer note/i).parent().find('textarea').invoke('val')
+  }
+
+  it('saves a customer note added via Edit on an order that had none', () => {
+    createOrder('01700099001', 'Edit Add Note Regression', null).then((interception) => {
+      cy.wrap(interception.response.body.data.id).as('orderId')
+    })
+    cy.wait(1500)
+
+    cy.get('@orderId').then((id) => {
+      getCustomerNoteFieldValue(id).should('eq', '')
+
+      cy.contains('label', /customer note/i).parent().find('textarea')
+        .type('Added via Edit regression test', { delay: 30 })
+      cy.getButtonContaining('save order').click()
+      cy.contains(/order updated successfully/i).should('be.visible')
+      cy.wait(1500)
+
+      getCustomerNoteFieldValue(id).should('eq', 'Added via Edit regression test')
+    })
+  })
+
+  it('saves the removal of a customer note cleared via Edit', () => {
+    createOrder('01700099002', 'Edit Remove Note Regression', 'Original note to be removed').then((interception) => {
+      cy.wrap(interception.response.body.data.id).as('orderId')
+    })
+    cy.wait(1500)
+
+    cy.get('@orderId').then((id) => {
+      getCustomerNoteFieldValue(id).should('eq', 'Original note to be removed')
+
+      cy.contains('label', /customer note/i).parent().find('textarea').clear()
+      cy.getButtonContaining('save order').click()
+      cy.contains(/order updated successfully/i).should('be.visible')
+      cy.wait(1500)
+
+      getCustomerNoteFieldValue(id).should('eq', '')
+    })
+  })
+
+  it('shows the customer note on the View Order page', () => {
+    createOrder('01700099003', 'View Note Regression', 'Note that should be visible on View page').then((interception) => {
+      cy.wrap(interception.response.body.data.id).as('orderId')
+    })
+    cy.wait(1500)
+
+    cy.get('@orderId').then((id) => {
+      cy.visit(`/admin/orders/${id}`)
+      cy.wait(4000)
+      cy.contains('Note that should be visible on View page').should('be.visible')
+    })
   })
 })
 

@@ -57,10 +57,19 @@ Cypress.Commands.add('goToCreateOrderPage', () => {
   cy.getButtonContaining('create order').should('be.visible')
 })
 
+// A curated subset of the catalogue known to behave well as test fixtures
+// (in stock, priced, and either has variants or doesn't in a way the form
+// handles cleanly) - the full catalogue includes junk-looking entries (e.g.
+// "Test", "2") that aren't reliable to build orders against.
+const DUMMY_ORDER_PRODUCTS = ['Macbook M4', 'IMac', 'Mac MINI', 'Pro Book']
+
 // Creates a real order via the UI (product + variant + delivery fee +
 // customer info) and lands back on the Orders "All" tab with the new order
 // as the first row - useful as a fixture for testing per-order actions
 // (status/courier/agent/view/edit/etc.) without depending on seed data.
+// The product is picked at random from DUMMY_ORDER_PRODUCTS each call (not
+// always the same one) and exposed via the 'lastDummyOrderProduct' alias so
+// callers that need to assert on it don't have to hardcode a product name.
 Cypress.Commands.add('createDummyOrder', (phone, customerName = 'Action Test Customer') => {
   cy.visit('/admin/orders')
   cy.contains('Orders').should('be.visible')
@@ -72,7 +81,9 @@ Cypress.Commands.add('createDummyOrder', (phone, customerName = 'Action Test Cus
   // the real product list to actually populate it instead of guessing a
   // fixed delay (the products API can be slow under load).
   cy.get('select').first().find('option', { timeout: 15000 }).should('have.length.greaterThan', 1)
-  cy.get('select').first().select('Macbook M4')
+  const product = DUMMY_ORDER_PRODUCTS[Math.floor(Math.random() * DUMMY_ORDER_PRODUCTS.length)]
+  cy.wrap(product).as('lastDummyOrderProduct')
+  cy.get('select').first().select(product)
   cy.wait(1500)
   cy.get('select').eq(1).then(($variantSelect) => {
     const options = $variantSelect.find('option').toArray().map((o) => o.textContent.trim())
@@ -142,7 +153,10 @@ Cypress.Commands.add('clickUntilTextVisible', (clickFn, text, retries = 4) => {
     })
   }
   ensureOpen(retries)
-  cy.contains(text, { timeout: 4000 }).should('be.visible')
+  // 'exist' rather than 'be.visible' - a `position: fixed` panel can trip
+  // Cypress's visibility heuristic (it thinks an ancestor "overflows" it)
+  // even though it's genuinely rendered and usable on screen.
+  cy.contains(text, { timeout: 8000 }).should('exist')
 })
 
 // Opens the date-range dropdown (button currently showing e.g. "Today").
@@ -159,7 +173,7 @@ Cypress.Commands.add('ensureDateDropdownOpen', (retries = 4) => {
       if (retriesLeft <= 0) return
 
       cy.contains('button', /today|yesterday|this month|this year|last year/i).click()
-      cy.wait(600)
+      cy.wait(1200)
       ensureOpen(retriesLeft - 1)
     })
   }
@@ -169,6 +183,31 @@ Cypress.Commands.add('ensureDateDropdownOpen', (retries = 4) => {
 Cypress.Commands.add('selectDateRange', (rangeLabel) => {
   cy.ensureDateDropdownOpen()
   cy.contains(rangeLabel).click({ force: true })
+})
+
+// A `fixed inset-0` backdrop can linger after a dropdown selection and block
+// clicks/typing on anything underneath. Clicking the backdrop itself (a
+// "click outside" gesture) reliably dismisses it.
+Cypress.Commands.add('dismissBackdrop', () => {
+  cy.get('body').then(($body) => {
+    const $backdrop = $body.find('div.fixed.inset-0')
+    if ($backdrop.length > 0) {
+      cy.wrap($backdrop.first()).click({ force: true })
+      cy.wait(300)
+    }
+  })
+})
+
+// Row-level dropdowns (Courier/Status/Agent) are teleported panels whose
+// options are real <button> elements in a `div.fixed.z-50` sibling of the
+// backdrop. Clicking via cy.contains(optionText) is unreliable - it can
+// land on a text node that doesn't carry the button's click handler.
+// Targeting the actual button in the open panel is what works consistently.
+Cypress.Commands.add('selectFromRowDropdown', (triggerClickFn, panelHeaderText, optionText) => {
+  triggerClickFn()
+  cy.contains(panelHeaderText, { timeout: 8000 }).should('exist')
+  cy.wait(300)
+  cy.get('div.fixed.z-50').contains('button', optionText).click({ force: true })
 })
 
 Cypress.Commands.add('loginViaSession', () => {

@@ -1,16 +1,11 @@
-describe('explore products page', () => {
-  it('loads the products page and screenshots it', () => {
-    cy.loginViaSession()
-    cy.visit('/admin/catalogue/products')
-    cy.wait(2000)
-    cy.screenshot('products-page-initial', { capture: 'fullPage' })
-
-    cy.get('table').parent().scrollTo('right')
-    cy.wait(500)
-    cy.screenshot('products-actions-column', { capture: 'viewport' })
-
-    cy.contains('button', /filters/i).click({ force: true })
-    cy.wait(1000)
-    cy.screenshot('products-filters-panel', { capture: 'fullPage' })
-  })
-})
+// ─────────────────────────────────────────────────────────────────────────────
+// EXPLORATION COMPLETE – this tmp file has been superseded.
+//
+// The full Products page test suite is now in:
+//   cypress/e2e/products.cy.js
+//
+// Screenshots taken during exploration are saved in:
+//   cypress/screenshots/_tmp-explore-products.cy.js/
+//
+// This file is kept for reference only. It is safe to delete.
+// ─────────────────────────────────────────────────────────────────────────────

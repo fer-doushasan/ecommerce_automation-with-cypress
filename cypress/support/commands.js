@@ -210,6 +210,79 @@ Cypress.Commands.add('selectFromRowDropdown', (triggerClickFn, panelHeaderText, 
   cy.get('div.fixed.z-50').contains('button', optionText).click({ force: true })
 })
 
+// Creates a minimal dummy product via the New Product form (name, price,
+// required stock fields, and the required default Delivery Option row) and
+// exposes its name via the 'lastDummyProductName' alias. Used as a throwaway
+// fixture for list/view/delete tests so they never touch real catalogue rows
+// - the name is timestamped so it's always unique and easy to spot/clean up
+// manually.
+Cypress.Commands.add('createDummyProduct', ({ name, price = '999', type = 'physical' } = {}) => {
+  const productName = name || `ZZZ Test Product ${Date.now()}`
+
+  cy.visit('/admin/catalogue/products')
+  cy.contains('h1, h2', /products/i).should('be.visible')
+  cy.wait(1000)
+  // '/create', not '/admin/catalogue/products' - that substring also matches
+  // the list page itself, so a missed click would false-positive as success.
+  cy.clickUntilUrlIncludes(() => cy.contains('button', /new product/i), '/create')
+  cy.wait(1500)
+
+  if (type === 'digital') {
+    cy.contains('button', /digital product/i).click({ force: true })
+    cy.wait(500)
+  }
+
+  // Digital products label this field "Name" instead of "Product Name".
+  cy.contains('label', /^(product )?name/i).parent().find('input, textarea').first().type(productName, { delay: 60 })
+  cy.contains('label', /^\s*price/i).parent().find('input').first().type(String(price), { delay: 60 })
+
+  if (type === 'digital') {
+    // Digital-only required field - a link to the deliverable.
+    cy.contains('label', /product link/i).parent().find('input').first().type('https://example.com/dummy-file', { delay: 60 })
+  }
+
+  // Initial Stock / Low Stock Limit / Delivery Options are physical-only -
+  // only fill them if this form actually has them.
+  cy.get('body').then(($body) => {
+    if (/initial stock/i.test($body.text())) {
+      cy.contains('label', /initial stock/i).parent().find('input').first().type('10', { delay: 60 })
+    }
+    if (/low stock limit/i.test($body.text())) {
+      cy.contains('label', /low stock limit/i).parent().find('input').first().type('5', { delay: 60 })
+    }
+    if ($body.find('input[placeholder*="Option name"]').length) {
+      // Delivery Options ships with one empty row by default (Option name +
+      // price) - it's a required section, not a labeled field, so target
+      // the row's inputs directly by placeholder rather than via a <label>.
+      cy.get('input[placeholder*="Option name"]').first().type('Inside Dhaka', { delay: 60 })
+      cy.get('input[placeholder*="Option name"]').first().closest('div.flex.items-stretch')
+        .find('input[type="number"]').first().type('50', { delay: 60 })
+    }
+  })
+  cy.wait(300)
+
+  cy.intercept('POST', '**/api/v1/admin/products').as('createProduct')
+  // Non-anchored - the button's text has a leading space from an icon span
+  // before it ("<icon/> Create Product"), which breaks a ^-anchored match
+  // (same pitfall documented in coupons.cy.js for its labels).
+  cy.contains('button', /create product/i).click({ force: true })
+  cy.wrap(productName).as('lastDummyProductName')
+  return cy.wait('@createProduct', { timeout: 15000 })
+})
+
+// Finds a product row by exact name in the (already-loaded) products list -
+// searches for it first since a freshly created product isn't guaranteed to
+// land on page 1, matching the same search-before-act pattern used for
+// coupons.
+Cypress.Commands.add('findProductRowByName', (name) => {
+  cy.visit('/admin/catalogue/products')
+  cy.contains('h1, h2', /products/i).should('be.visible')
+  cy.wait(1000)
+  cy.get('input[placeholder*="Search products"]').type(name, { delay: 60 })
+  cy.wait(1500)
+  return cy.contains('tbody tr', name)
+})
+
 Cypress.Commands.add('loginViaSession', () => {
   cy.session('validAdminSession', () => {
     cy.visit('/login')

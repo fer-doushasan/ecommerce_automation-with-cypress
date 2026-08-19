@@ -1,0 +1,284 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+Warning: We failed to trash the existing run results.
+
+This error will not affect or change the exit code.
+
+Error: spawn Unknown system error -86
+    at ChildProcess.spawn (node:internal/child_process:420:11)
+    at spawn (node:child_process:800:9)
+    at execFile (node:child_process:349:17)
+    at execFile (node:child_process:245:21)
+    at execFile (node:electron/js2c/node_init:2:3936)
+    at s.exports (<embedded>:1157:542825)
+    at s.exports (<embedded>:1157:543426)
+    at s.exports (<embedded>:1157:586682)
+    at async <embedded>:2917:85512
+    at async Promise.all (index 0)
+    at async Object.u [as folder] (<embedded>:2917:85469)
+    at async Promise.all (index 1)
+    at async G (<embedded>:2917:100640)
+    at async Promise.all (index 2)
+    at async <embedded>:2917:115464
+    at async Object.startInMode (<embedded>:2924:5364)
+    at async startCypress (/Users/bdfb/Library/Caches/Cypress/15.20.1/Cypress.app/Contents/Resources/app/packages/server/index.jsc:1:1011066)
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.20.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v24.18.0 (/usr/local/bin/node)                                                 │
+  │ Specs:          1 found (products.cy.js)                                                       │
+  │ Searched:       cypress/e2e/products.cy.js                                                     │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  products.cy.js                                                                  (1 of 1)
+
+
+  Products page – page load & static layout
+    ✓ loads the products page with the correct heading and subtitle (8641ms)
+    ✓ shows the primary action buttons: New product, Export Products, Tutorial (1539ms)
+    ✓ shows the search box and Filters button in the toolbar (1890ms)
+    ✓ displays a result count and pagination summary (3154ms)
+    ✓ renders the table with all expected column headers (1463ms)
+    ✓ shows at least one product row in the table (1719ms)
+    ✓ shows the Finance sub-columns (Price, Discount, Discounted Price, Cross Selling Price) (3809ms)
+    ✓ shows the breadcrumb trail: Catalogue > Products > List (1515ms)
+    ✓ opens the tutorial video when Tutorial is clicked (3207ms)
+
+  Products page – search
+    ✓ lets the user type in the search box (3095ms)
+    ✓ shows matching products when a known product name is searched (3631ms)
+    ✓ shows an empty state or zero results for a nonsense query (4745ms)
+    ✓ clears the search and restores the full list (4194ms)
+
+  Products page – Filters panel
+    ✓ opens the Filters panel when the Filters button is clicked (3099ms)
+    ✓ shows Reset and Apply buttons inside the Filters panel (2772ms)
+    ✓ shows the Deleted Records dropdown inside the Filters panel (3149ms)
+    ✓ closes the Filters panel when Reset is clicked and list is intact (4573ms)
+
+  Products page – pagination
+    ✓ shows page 1 / 2 in the pagination controls (2806ms)
+    ✓ shows a "Rows per page" control (2244ms)
+    ✓ navigates to page 2 via the Next button and shows later results (3932ms)
+    ✓ navigates back to page 1 via the Previous button (3912ms)
+
+  Products page – table row data
+    1) shows known product names from the catalogue in the table
+    ✓ shows PROD- SKU prefix in product info cells (3670ms)
+    ✓ shows Physical or Digital product type badge on each row (3666ms)
+    ✓ shows a price with currency symbol (৳) for each product (3141ms)
+    ✓ shows an Active toggle switch for each product row (3089ms)
+    ✓ shows LOW STOCK badge for products with low inventory (if any) (2395ms)
+    ✓ shows the Actions column when the table is scrolled to the right (3071ms)
+    ✓ shows a Variant count badge in the Variants column (3433ms)
+
+  Products page – New Product form navigation
+    ✓ navigates to a New Product URL when New product is clicked (2451ms)
+    ✓ shows a product name / title field on the New Product page (3614ms)
+    ✓ cancels back to the products list from the New Product form (3937ms)
+
+  Products page – Export Products
+    ✓ clicking Export Products shows an export option or triggers a download (2703ms)
+
+  Products page – New Product form fields
+    ✓ shows product name, price, and delivery option as part of the form (3799ms)
+    ✓ blocks submission when required fields are left empty (4699ms)
+    ✓ lets the user choose between Physical and Digital product type (3590ms)
+    ✓ shows discount and discount type fields (3562ms)
+    ✓ shows enable stock and low stock fields (3762ms)
+    ✓ shows a product description field (3415ms)
+    ✓ lets the user type a description into the rich text editor (4568ms)
+    ✓ shows a courier weight field (3592ms)
+    ✓ shows a product image upload field (4473ms)
+    ✓ shows a video link field (3615ms)
+    ✓ shows a cross sell / cross selling field (3563ms)
+
+  Products page – New Product form: variants
+    ✓ shows a Remove action after a variant is auto-generated from an attribute (4768ms)
+    ✓ adds another variant row when Add Variant is clicked (5499ms)
+    ✓ removes the variant row when Remove is clicked (5478ms)
+    ✓ does not show a video URL field inside a generated variant row (5074ms)
+
+  Products page – create, edit, and delete a dummy product
+    ✓ creates a dummy product and it appears in the list (15017ms)
+    2) creates a Digital product and it appears in the list, marked Digital
+    ✓ opens the Edit page for a product with fields pre-filled (21794ms)
+    3) edits a dummy product and the change is saved
+    4) deletes a dummy product from the list and it disappears
+
+  Products page – list bulk selection
+    5) shows a bulk Delete option when a row is selected, and deletes the selected dummy product
+
+  Products page – rows per page
+    ✓ shows 10 rows by default (3518ms)
+    ✓ shows up to 25 rows when Rows per page is switched to 25 (3827ms)
+
+  Products page – View product detail page
+    ✓ navigates to a product view page when View is clicked (16272ms)
+    ✓ shows product info, order totals, and a sales trend chart (22978ms)
+    ✓ shows a stock history section and lets the user adjust stock (22682ms)
+    6) shows inactive variant section
+    ✓ shows Edit, Delete, and Tutorial actions on the view page (16284ms)
+    ✓ filters the chart by day, week, month, and year (23239ms)
+    ✓ filters the chart by deleted-records visibility (the Sales Trend section's second filter) (23764ms)
+    7) shows which customers bought the product when Customers is clicked
+    ✓ shows current quantity and sold history when Stock History is clicked (2920ms)
+    ✓ shows a reorderable variant list when Sort Variants is clicked (3109ms)
+    8) opens an Adjust Stock modal with increase/decrease controls
+    9) increases stock via the Adjust Stock modal
+    ✓ opens the tutorial video from the View page (17426ms)
+    10) deletes a dummy product from the View page
+
+  Products page – access control
+    ✓ redirects to /login when visiting the products page while logged out (1169ms)
+
+
+  61 passing (10m)
+  10 failing
+
+  1) Products page – table row data
+       shows known product names from the catalogue in the table:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: 'Mac MINI' but never did.
+      at eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:221:24)
+  at Array.forEach (<anonymous>)
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:220:18)
+
+  2) Products page – create, edit, and delete a dummy product
+       creates a Digital product and it appears in the list, marked Digital:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/product name/i' within the selector: 'label' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/support/commands.js:235:5)
+      at wrapped (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:146366:43)
+
+  3) Products page – create, edit, and delete a dummy product
+       edits a dummy product and the change is saved:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/update product|save product|save changes/i' within the selector: 'button' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:506:9)
+      at getRet (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:121345:20)
+      at tryCatcher (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:1780:23)
+      at Promise.attempt.Promise.try (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:4288:29)
+      at Context.thenFn (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:121356:66)
+      at Context.then (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:121607:21)
+      at wrapped (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:146374:19)
+
+  4) Products page – create, edit, and delete a dummy product
+       deletes a dummy product from the list and it disappears:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/no products found|0 results/i' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:525:50)
+      at getRet (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:121345:20)
+      at tryCatcher (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:1780:23)
+      at Promise.attempt.Promise.try (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:4288:29)
+      at Context.thenFn (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:121356:66)
+      at Context.then (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:121607:21)
+      at wrapped (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:146374:19)
+
+  5) Products page – list bulk selection
+       shows a bulk Delete option when a row is selected, and deletes the selected dummy product:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/no products found|0 results/i' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:546:50)
+      at getRet (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:121345:20)
+      at tryCatcher (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:1780:23)
+      at Promise.attempt.Promise.try (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:4288:29)
+      at Context.thenFn (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:121356:66)
+      at Context.then (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:121607:21)
+      at wrapped (https://frontend-bdfunnelbuilder.vercel.app/__cypress/runner/cypress_runner.js:146374:19)
+
+  6) Products page – View product detail page
+       shows inactive variant section:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/inactive variant/i' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:622:37)
+
+  7) Products page – View product detail page
+       shows which customers bought the product when Customers is clicked:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^customers$/i' within the selector: 'button' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:661:7)
+
+  8) Products page – View product detail page
+       opens an Adjust Stock modal with increase/decrease controls:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/adjust stock/i' within the selector: 'button' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:684:7)
+
+  9) Products page – View product detail page
+       increases stock via the Adjust Stock modal:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/adjust stock/i' within the selector: 'button' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:691:7)
+
+  10) Products page – View product detail page
+       deletes a dummy product from the View page:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^delete$/i' within the selector: 'button' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/products.cy.js:713:7)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        71                                                                               │
+  │ Passing:      61                                                                               │
+  │ Failing:      10                                                                               │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  10                                                                               │
+  │ Video:        false                                                                            │
+  │ Duration:     9 minutes, 35 seconds                                                            │
+  │ Spec Ran:     products.cy.js                                                                   │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – table row data -- shows known product names from the catalogue in the table (f               
+     ailed).png                                                                                     
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – create, edit, and delete a dummy product -- creates a Digital product and it a               
+     ppears in the list, marked Digital (failed).png                                                
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – create, edit, and delete a dummy product -- edits a dummy product and the chan               
+     ge is saved (failed).png                                                                       
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – create, edit, and delete a dummy product -- deletes a dummy product from the l               
+     ist and it disappears (failed) (2).png                                                         
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – list bulk selection -- shows a bulk Delete option when a row is selected, and                
+     deletes the selected dummy product (failed) (2).png                                            
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – View product detail page -- shows inactive variant section (failed).png                      
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – View product detail page -- shows which customers bought the product when Cust               
+     omers is clicked (failed).png                                                                  
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – View product detail page -- opens an Adjust Stock modal with increasedecrease                
+     controls (failed).png                                                                          
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – View product detail page -- increases stock via the Adjust Stock modal (failed               
+     ).png                                                                                          
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/products.cy.js/Products page      (1280x720)
+     – View product detail page -- deletes a dummy product from the View page (failed               
+     ).png                                                                                          
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  products.cy.js                           09:35       71       61       10        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     09:35       71       61       10        -        -  
+

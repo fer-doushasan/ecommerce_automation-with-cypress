@@ -95,6 +95,131 @@ describe('Coupons page', () => {
     cy.contains(code).should('be.visible')
   })
 
+  // The Products field is a checkbox-*looking* multi-select, but each row's
+  // "checkbox" is actually a plain <span> (w-4 h-4 rounded border-2) with no
+  // real <input> - there is no native checkbox anywhere in this picker.
+  // The whole row is the clickable unit: <li data-product-item="" ...>.
+  // The panel itself renders via an inline `position: fixed` style (not the
+  // Tailwind `fixed`/`z-50` classes other pickers in this app use), which is
+  // why a class-based portal selector doesn't find it either - targeting
+  // the row by its data-product-item attribute sidesteps all of that.
+  // No search term is typed - the panel already lists products by default,
+  // and searching for a specific name (e.g. "Macbook") isn't reliable since
+  // the live catalogue doesn't consistently contain any given fixture name.
+  function selectFirstAvailableProduct() {
+    cy.contains('label', /products/i).parent().find('div.cursor-pointer').first().click({ force: true })
+    cy.get('input[placeholder*="Search products"]').should('be.visible')
+    cy.get('li[data-product-item]', { timeout: 10000 }).first().click({ force: true })
+    cy.wait(300)
+    cy.contains('button', /^done$/i).click({ force: true })
+    cy.wait(500)
+  }
+
+  // The list's Type column is the actual user-facing signal for this (the
+  // API response has no explicit type field, just a products array) - so
+  // that's what these assert against, rather than the response body.
+  it('scopes a coupon to a single product when one is selected via the Products picker, and the list shows it as Product', () => {
+    goToNewCouponForm()
+    const code = `SCOPED${Date.now()}`.slice(0, 15)
+    cy.get('input[placeholder*="SAVE20"]').type(code, { delay: 60 })
+    cy.contains('label', /discount type/i).parent().find('select').select('Flat')
+    cy.wait(300)
+    getFieldByExactLabel('Discount *').find('input[type="number"]').first().type('15', { delay: 60 })
+
+    selectFirstAvailableProduct()
+
+    cy.intercept('POST', '**/api/v1/admin/coupons').as('createCoupon')
+    cy.contains('button', /create coupon/i).click({ force: true })
+    cy.wait('@createCoupon', { timeout: 15000 }).its('response.statusCode').should('eq', 200)
+    cy.wait(1500)
+
+    cy.get('input[placeholder*="Search by coupon"]').type(code, { delay: 100 })
+    cy.wait(2500)
+    cy.get('table').parent().scrollTo('right')
+    cy.wait(500)
+    cy.contains('table tbody tr', code).invoke('text').should('match', /product/i)
+  })
+
+  it('creates a global coupon when no product is selected, and the list shows it as Global', () => {
+    const code = `GLOBAL${Date.now()}`.slice(0, 15)
+    fillAndSubmitCoupon({ code, discountType: 'Flat', discount: 20 })
+    cy.wait(1500)
+
+    cy.get('input[placeholder*="Search by coupon"]').type(code, { delay: 100 })
+    cy.wait(2500)
+    cy.get('table').parent().scrollTo('right')
+    cy.wait(500)
+    cy.contains('table tbody tr', code).invoke('text').should('match', /global/i)
+  })
+
+  it('applies min order amount and max usage to a coupon', () => {
+    goToNewCouponForm()
+    const code = `LIMITS${Date.now()}`.slice(0, 15)
+    cy.get('input[placeholder*="SAVE20"]').type(code, { delay: 60 })
+    cy.contains('label', /discount type/i).parent().find('select').select('Flat')
+    cy.wait(300)
+    getFieldByExactLabel('Discount *').find('input[type="number"]').first().type('15', { delay: 60 })
+    cy.contains('label', /min order amount/i).parent().find('input[type="number"]').type('500', { delay: 60 })
+    cy.contains('label', /max usage/i).parent().find('input').type('50', { delay: 60 })
+
+    cy.intercept('POST', '**/api/v1/admin/coupons').as('createCoupon')
+    cy.contains('button', /create coupon/i).click({ force: true })
+    cy.wait('@createCoupon', { timeout: 15000 }).then((interception) => {
+      expect(interception.response.body.data.min_order_amount).to.eq(500)
+      expect(interception.response.body.data.max_usage).to.eq(50)
+    })
+  })
+
+  // Max Discount Amount only makes sense for a percentage-off coupon (a flat
+  // discount has no "amount" to cap) - the form disables it until
+  // Percentage is chosen, labelled "(only for percentage)".
+  it('disables Max Discount Amount for Flat and enables it once Percentage is chosen', () => {
+    goToNewCouponForm()
+    cy.contains('label', /max discount amount/i).parent().find('input').should('be.disabled')
+
+    cy.contains('label', /discount type/i).parent().find('select').select('Percentage')
+    cy.wait(300)
+    cy.contains('label', /max discount amount/i).parent().find('input').should('be.enabled')
+  })
+
+  it('applies max discount amount to a Percentage coupon', () => {
+    goToNewCouponForm()
+    const code = `MAXDISC${Date.now()}`.slice(0, 15)
+    cy.get('input[placeholder*="SAVE20"]').type(code, { delay: 60 })
+    cy.contains('label', /discount type/i).parent().find('select').select('Percentage')
+    cy.wait(300)
+    getFieldByExactLabel('Discount *').find('input[type="number"]').first().type('10', { delay: 60 })
+    cy.contains('label', /max discount amount/i).parent().find('input[type="number"]').type('200', { delay: 60 })
+
+    cy.intercept('POST', '**/api/v1/admin/coupons').as('createCoupon')
+    cy.contains('button', /create coupon/i).click({ force: true })
+    cy.wait('@createCoupon', { timeout: 15000 }).then((interception) => {
+      expect(interception.response.body.data.max_discount_amount).to.eq(200)
+    })
+  })
+
+  // Valid From/Valid Till are native datetime-local inputs (not a custom
+  // calendar widget), so a plain .type() with the "YYYY-MM-DDTHH:mm" format
+  // works.
+  it('applies valid from and valid till dates to a coupon', () => {
+    goToNewCouponForm()
+    const code = `DATES${Date.now()}`.slice(0, 15)
+    cy.get('input[placeholder*="SAVE20"]').type(code, { delay: 60 })
+    cy.contains('label', /discount type/i).parent().find('select').select('Flat')
+    cy.wait(300)
+    getFieldByExactLabel('Discount *').find('input[type="number"]').first().type('15', { delay: 60 })
+
+    cy.contains('label', /valid from/i).parent().find('input').type('2026-08-20T00:00', { delay: 30 })
+    cy.contains('label', /valid till/i).parent().find('input').type('2026-12-31T23:59', { delay: 30 })
+
+    cy.intercept('POST', '**/api/v1/admin/coupons').as('createCoupon')
+    cy.contains('button', /create coupon/i).click({ force: true })
+    cy.wait('@createCoupon', { timeout: 15000 }).then((interception) => {
+      expect(interception.response.body.data.valid_from).to.not.be.null
+      expect(interception.response.body.data.valid_till).to.not.be.null
+    })
+  })
+
   it('blocks creating a coupon with no code or discount type filled in', () => {
     goToNewCouponForm()
 

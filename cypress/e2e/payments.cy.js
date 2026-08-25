@@ -49,6 +49,23 @@ describe('Payments page', () => {
     cy.get('tbody tr').should('have.length', 1)
   })
 
+  // Regression test for bug-reports/payments-coupon-search-not-working.md:
+  // the search input's placeholder advertises "transaction ID, coupon or
+  // status", but searching by a coupon code (e.g. "TEST", used repeatedly by
+  // subscription.cy.js's extend-subscription tests) previously returned zero
+  // results - GET .../payments?search=TEST came back with data.total: 0 even
+  // though a completed TEST-coupon transaction existed, confirming it was a
+  // backend query bug rather than a frontend rendering issue. Developer
+  // reports this is now fixed - this asserts both the raw API response and
+  // the rendered row.
+  it('filters the list when searching by coupon code (regression: coupon search)', () => {
+    cy.intercept('GET', '**/api/v1/admin/payments**search=TEST**').as('couponSearch')
+    cy.get('input[placeholder*="Search by transaction ID"]').type('TEST')
+    cy.wait('@couponSearch', { timeout: 10000 }).its('response.body.data.total').should('be.greaterThan', 0)
+    cy.get('tbody tr').should('have.length.greaterThan', 0)
+    cy.contains('td', /test/i).should('be.visible')
+  })
+
   it('changes the page size via Rows per page', () => {
     cy.intercept('GET', '**/api/v1/admin/payments**per_page=25**').as('per25')
     cy.get('select').select('25')

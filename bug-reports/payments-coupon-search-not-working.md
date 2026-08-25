@@ -1,5 +1,15 @@
 # Bug: Payments search does not match on Coupon code
 
+## Status: Fixed — verified 2026-08-25
+Re-tested after the developer's fix via a new regression test
+(`cypress/e2e/payments.cy.js` — "filters the list when searching by coupon
+code (regression: coupon search)"). Searching `TEST` now returns the
+matching transaction(s) with `data.total > 0` (was `0` in the original
+report) and the row renders correctly. No unrelated regressions from this
+fix — a separate pre-existing flake in the same file (initial-load skeleton
+briefly lacking the Coupon `th`) surfaced during testing but is unrelated to
+this bug/fix.
+
 ## Summary
 The Payments page search box (Admin → Subscription Info → Payments) advertises itself as searching by "transaction ID, coupon or status" (see input placeholder), but searching by a coupon code returns zero results even when a completed transaction used that exact coupon.
 

@@ -1,0 +1,193 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+Warning: We failed to trash the existing run results.
+
+This error will not affect or change the exit code.
+
+Error: spawn Unknown system error -86
+    at ChildProcess.spawn (node:internal/child_process:420:11)
+    at spawn (node:child_process:800:9)
+    at execFile (node:child_process:349:17)
+    at execFile (node:child_process:245:21)
+    at execFile (node:electron/js2c/node_init:2:3936)
+    at s.exports (<embedded>:1157:542825)
+    at s.exports (<embedded>:1157:543426)
+    at s.exports (<embedded>:1157:586682)
+    at async <embedded>:2917:85512
+    at async Promise.all (index 0)
+    at async Object.u [as folder] (<embedded>:2917:85469)
+    at async Promise.all (index 2)
+    at async G (<embedded>:2917:100640)
+    at async Promise.all (index 2)
+    at async <embedded>:2917:115464
+    at async Object.startInMode (<embedded>:2924:5364)
+    at async startCypress (/Users/bdfb/Library/Caches/Cypress/15.20.1/Cypress.app/Contents/Resources/app/packages/server/index.jsc:1:1011066)
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.20.1                                                                        │
+  │ Browser:        Chrome 152 (headless)                                                          │
+  │ Node Version:   v24.18.0 (/usr/local/bin/node)                                                 │
+  │ Specs:          1 found (sites.cy.js)                                                          │
+  │ Searched:       cypress/e2e/sites.cy.js                                                        │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  sites.cy.js                                                                     (1 of 1)
+
+
+  Site Builder - Sites
+    list
+      1) "before each" hook: openSitesList for "loads with New Site, search, the deleted-state filter, and the table"
+    New Site form
+      2) navigates from the list to the create form
+      3) Cancel returns to the sites list without creating anything
+    site CRUD (throwaway site only - never the live sites)
+      4) creates a new site via the New Site form
+      5) opens the new site Edit page with the name prefilled and a Pages section
+      6) renames the site, the change persists, then restores the original name
+      7) toggles the site Published state on and off
+      8) deletes the throwaway site from its row
+      9) "after all" hook for "deletes the throwaway site from its row"
+
+
+  0 passing (2m)
+  9 failing
+
+  1) Site Builder - Sites
+       list
+         "before each" hook: openSitesList for "loads with New Site, search, the deleted-state filter, and the table":
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^sites$/i' within the selector: 'h1' but never did.
+
+Because this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `list`
+      at Context.openSitesList (webpack://cypress-automation/./cypress/e2e/sites.cy.js:40:32)
+
+  2) Site Builder - Sites
+       New Site form
+         navigates from the list to the create form:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^sites$/i' within the selector: 'h1' but never did.
+      at openSitesList (webpack://cypress-automation/./cypress/e2e/sites.cy.js:40:32)
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/sites.cy.js:135:6)
+
+  3) Site Builder - Sites
+       New Site form
+         Cancel returns to the sites list without creating anything:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^cancel$/i' within the selector: 'button' but never did.
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/sites.cy.js:149:9)
+
+  4) Site Builder - Sites
+       site CRUD (throwaway site only - never the live sites)
+         creates a new site via the New Site form:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^sites$/i' within the selector: 'h1' but never did.
+      at openSitesList (webpack://cypress-automation/./cypress/e2e/sites.cy.js:40:32)
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/sites.cy.js:158:6)
+
+  5) Site Builder - Sites
+       site CRUD (throwaway site only - never the live sites)
+         opens the new site Edit page with the name prefilled and a Pages section:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^sites$/i' within the selector: 'h1' but never did.
+      at openSitesList (webpack://cypress-automation/./cypress/e2e/sites.cy.js:40:32)
+      at openEditFor (webpack://cypress-automation/./cypress/e2e/sites.cy.js:55:2)
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/sites.cy.js:178:6)
+
+  6) Site Builder - Sites
+       site CRUD (throwaway site only - never the live sites)
+         renames the site, the change persists, then restores the original name:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^sites$/i' within the selector: 'h1' but never did.
+      at openSitesList (webpack://cypress-automation/./cypress/e2e/sites.cy.js:40:32)
+      at openEditFor (webpack://cypress-automation/./cypress/e2e/sites.cy.js:55:2)
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/sites.cy.js:190:6)
+
+  7) Site Builder - Sites
+       site CRUD (throwaway site only - never the live sites)
+         toggles the site Published state on and off:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^sites$/i' within the selector: 'h1' but never did.
+      at openSitesList (webpack://cypress-automation/./cypress/e2e/sites.cy.js:40:32)
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/sites.cy.js:211:6)
+
+  8) Site Builder - Sites
+       site CRUD (throwaway site only - never the live sites)
+         deletes the throwaway site from its row:
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^sites$/i' within the selector: 'h1' but never did.
+      at openSitesList (webpack://cypress-automation/./cypress/e2e/sites.cy.js:40:32)
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/sites.cy.js:230:6)
+
+  9) Site Builder - Sites
+       site CRUD (throwaway site only - never the live sites)
+         "after all" hook for "deletes the throwaway site from its row":
+     AssertionError: Timed out retrying after 10000ms: Expected to find content: '/^sites$/i' within the selector: 'h1' but never did.
+
+Because this error occurred during a `after all` hook we are skipping the remaining tests in the current suite: `site CRUD (throwaway site o...`
+      at sweep (webpack://cypress-automation/./cypress/e2e/sites.cy.js:251:38)
+      at Context.eval (webpack://cypress-automation/./cypress/e2e/sites.cy.js:264:6)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        11                                                                               │
+  │ Passing:      0                                                                                │
+  │ Failing:      8                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      3                                                                                │
+  │ Screenshots:  9                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     1 minute, 49 seconds                                                             │
+  │ Spec Ran:     sites.cy.js                                                                      │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/sites.cy.js/Site Builder - Si     (1280x633)
+     tes -- list -- loads with New Site, search, the deleted-state filter, and the ta               
+     ble -- before each hook openSitesList (failed) (1).png                                         
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/sites.cy.js/Site Builder - Si     (1280x633)
+     tes -- New Site form -- navigates from the list to the create form (failed) (1).               
+     png                                                                                            
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/sites.cy.js/Site Builder - Si     (1280x633)
+     tes -- New Site form -- Cancel returns to the sites list without creating anythi               
+     ng (failed) (1).png                                                                            
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/sites.cy.js/Site Builder - Si     (1280x633)
+     tes -- site CRUD (throwaway site only - never the live sites) -- creates a new s               
+     ite via the New Site form (failed) (1).png                                                     
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/sites.cy.js/Site Builder - Si     (1280x633)
+     tes -- site CRUD (throwaway site only - never the live sites) -- opens the new s               
+     ite Edit page with the name prefilled and a Pages section (failed) (1).png                     
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/sites.cy.js/Site Builder - Si     (1280x633)
+     tes -- site CRUD (throwaway site only - never the live sites) -- renames the sit               
+     e, the change persists, then restores the original name (failed) (1).png                       
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/sites.cy.js/Site Builder - Si     (1280x633)
+     tes -- site CRUD (throwaway site only - never the live sites) -- toggles the sit               
+     e Published state on and off (failed) (1).png                                                  
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/sites.cy.js/Site Builder - Si     (1280x633)
+     tes -- site CRUD (throwaway site only - never the live sites) -- deletes the thr               
+     owaway site from its row (failed) (1).png                                                      
+  -  /Users/bdfb/cypress-automation/cypress/screenshots/sites.cy.js/Site Builder - Si     (1280x633)
+     tes -- site CRUD (throwaway site only - never the live sites) -- deletes the thr               
+     owaway site from its row -- after all hook (failed) (1).png                                    
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  sites.cy.js                              01:49       11        -        8        -        3 │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     01:49       11        -        8        -        3  
+

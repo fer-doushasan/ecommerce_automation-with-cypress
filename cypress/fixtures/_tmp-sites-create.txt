@@ -1,0 +1,102 @@
+===== URL =====
+https://frontend-bdfunnelbuilder.vercel.app/__cypress/iframes/cypress%2Fe2e%2F_tmp-explore-sites-forms.cy.js?browserFamily=chromium
+
+===== HEADINGS =====
+<h2> Create
+<h1> Add New Site
+<h2> Site Information
+
+===== LABELS =====
+label: "Site Name *"
+
+===== INPUTS / SELECTS / TEXTAREAS =====
+<input> type=text name=null placeholder=e.g. My Fashion Store :: <input value="" type="text" placeholder="e.g. My Fashion Store" class="h-10 px-3 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-800 outline-none placeholder-zinc-400 focus:border-
+
+===== BUTTONS (visible) =====
+[Premium Gadgetmacbook-shop]
+[Reports]
+[Catalogue]
+[Online]
+[9+]
+[FH]
+[Sites]
+[Back]
+[Cancel]
+[Create Site]
+
+===== FULL BODY innerText =====
+Premium Gadget
+
+macbook-shop
+
+Dashboard
+Agent Dashboard
+Orders
+Abandoned Orders
+Agents
+REPORTS
+Sales Reports
+Sales Target Histories
+Order Reports
+CATALOGUE
+Products
+Coupons
+SITE BUILDER
+Domains
+Sites
+ECOMMERCE
+Settings
+Banners
+Categories
+Brands
+Pages
+ADDONS
+Fake Order
+SMS
+Call Automation
+WooCommerce
+Call Center
+USERS AND ROLES
+Invitations
+Users
+Customers
+Roles
+Activities
+SETTINGS
+Site Settings
+Pixel Settings
+Google Settings
+TikTok Settings
+Invoice Settings
+Microsoft Settings
+Courier Integration
+Cancel Reason
+Payment Settings
+Webhook Integration
+SUBSCRIPTION INFO
+Subscription
+Payments
+SUPPORT & TICKETS
+Onboarding
+Tutorial
+Support
+
+BD Funnel Builder
+
+v2.0
+
+Create
+Online
+9+
+FH
+Sites
+Add New Site
+Add New Site
+Back
+Site Information
+
+Set a name for your new site.
+
+SITE NAME *
+Cancel
+Create Site

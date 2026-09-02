@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "cypress:open": "cypress open --browser chrome",
-    "cypress:run": "cypress run --browser chrome"
+    "cypress:run": "cypress run --browser chrome",
+    "load:smoke": "k6 run load/smoke.js",
+    "load:stress": "k6 run load/stress-breakpoint.js"
   },
   "keywords": [],
   "author": "",

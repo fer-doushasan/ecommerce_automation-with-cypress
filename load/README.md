@@ -64,3 +64,38 @@ of abort. `load/results/summary.json` has the full metrics dump;
   (`http_req_failed` / `business_errors`). Latency-first usually means CPU / DB
   contention; errors-first often means a pool or connection limit.
 - Re-run 2–3 times; breaking points vary ±10–20% run to run.
+
+## Frontend (v2.bdfunnelbuilder.com)
+
+`frontend-load.js` is a separate target from the backend API above: it drives
+the **v2 Nuxt frontend on Vercel** (staging/preview environment, confirmed by
+project owner), not `backend.bdfunnelbuilder.com`. Every request is a real
+SSR page render / serverless invocation, so this is a *sustained load* test
+(does it hold up at an expected traffic level), not a breakpoint test — it
+does not abort on SLO breach, it just reports pass/fail at the end.
+
+Public, unauthenticated routes only (`/`, `/login`, `/register`, `/terms`,
+`/privacy` — see `lib/pages.js`); `/pricing`, `/about`, `/contact`,
+`/dashboard` don't exist on this host (404) as of the last check.
+
+```sh
+# Dry run first — small VUs/HOLD to confirm the target and script work
+k6 run -e VUS=5 -e HOLD=30s load/frontend-load.js
+
+# Real run — 100 concurrent users held for 10 minutes
+npm run load:frontend -- -e VUS=100 -e HOLD=10m
+```
+
+| Var | Default | Notes |
+|-----|---------|-------|
+| `FRONTEND_BASE` | `https://v2.bdfunnelbuilder.com` | No trailing slash |
+| `VUS` | `50` | Target concurrent virtual users |
+| `RAMP_UP` | `30s` | Time to climb to `VUS` |
+| `HOLD` | `5m` | Time held at `VUS` |
+| `RAMP_DOWN` | `30s` | Time to ramp back to 0 |
+| `MAX_P95_MS` | `1500` | p95 latency considered a pass |
+| `MAX_ERROR_RATE` | `0.01` | Failed-request rate considered a pass |
+
+Even on staging/preview, Vercel bills per invocation and may throttle
+suspicious traffic spikes — start with the dry run, and step `VUS` up
+gradually rather than jumping straight to a large number.

@@ -7,7 +7,8 @@
     "cypress:open": "cypress open --browser chrome",
     "cypress:run": "cypress run --browser chrome",
     "load:smoke": "k6 run load/smoke.js",
-    "load:stress": "k6 run load/stress-breakpoint.js"
+    "load:stress": "k6 run load/stress-breakpoint.js",
+    "load:frontend": "k6 run load/frontend-load.js"
   },
   "keywords": [],
   "author": "",

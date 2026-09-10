@@ -4,7 +4,7 @@ const path = require("path");
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: "https://frontend-bdfunnelbuilder.vercel.app",
+    baseUrl: "https://v2.bdfunnelbuilder.com",
     defaultCommandTimeout: 10000,
     setupNodeEvents(on, config) {
       on("task", {
